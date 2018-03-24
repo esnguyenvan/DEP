@@ -38,7 +38,7 @@ Neng =2
 inop_eng = 1
 g = ATRgeometry.data(1,Neng,inop_eng) # arg = Vtsize + options(Neng, inop_eng, vertical tail parameters)
 # --- Test case and steady parameters
-H_base = 0000 # in m the altitude
+H_base = 4000 # in m the altitude
 V_base = 54
 beta_base = 0/180*math.pi
 gamma = 2/180*math.pi 
