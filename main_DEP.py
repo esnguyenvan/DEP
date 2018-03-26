@@ -34,14 +34,15 @@ plt.rc('font', **font)
 # --- 
 
 """ Algorithm set up """
-Neng =2
-inop_eng = 1
-g = ATRgeometry.data(1,Neng,inop_eng) # arg = Vtsize + options(Neng, inop_eng, vertical tail parameters)
+Neng =12
+inop_eng = 3
+g = ATRgeometry.data(0.7,Neng,inop_eng) # arg = Vtsize + options(Neng, inop_eng, vertical tail parameters)
+print(g.PosiEng)
 # --- Test case and steady parameters
-H_base = 4000 # in m the altitude
-V_base = 54
-beta_base = 0/180*math.pi
-gamma = 2/180*math.pi 
+H_base = 0000 # in m the altitude
+V_base = 60
+beta_base = 5/180*math.pi
+gamma = 2.0/180*math.pi 
 R = 0 # in meters the turn radius
 phimax = 5 # in degree the max bank angle authorized
 alphamax=10 # in degree to adjust if it is below 71m/s
@@ -49,17 +50,19 @@ deltaRmax=0.75*30 # in degree
 ThrottleMax = 1 # max thrust level
 ThrottleMin = 1e-9 # min thruttle, don't accept 0 thrust
 # ---- Optim parameter ------
-MaxIter=100
+MaxIter=100 # only for single run
 tolerance=1e-5
 
 # --- additional parameters (default edited during execution) ---
-g.set_nofin(False) # =True means : no rudder used
+g.set_nofin(True) # =True means : no rudder used
 
 # --- dictionnary for type of aircraft studied. aircraft: ATR72, version : 'original', 'DEPoriginal', 'DEPnofin'
-g.hangar={'aircraft':'ATR72', 'version':'original'}
+g.hangar={'aircraft':'ATR72', 'version':'DEPoriginal'}
 
 # --- plot coeff evolution
 plotcoef = False
+# --- plot control histogram
+HistoGouv = False
 
 # --- Study jacobian
 gojac = False
@@ -81,14 +84,15 @@ MapBetaMax = 21
 MapBetaMin = -20
 MapBetaStep = 1
 
-MapGammaMax = 1     #gamma limits in degrees
-MapGammaMin = -5
-MapGammaStep = 0.25
+MapGammaMax = 5     #gamma limits in degrees
+MapGammaMin = 0
+MapGammaStep = 0.5
 
 MapOmegaMax = 0.07    #omega limits
 MapOmegaMin = -0.06
 MapOmegaStep = 0.01
 
+BetaStall = 15         #beta stall limit
 
 
 #Flight envelop Bounding parameters
@@ -162,7 +166,7 @@ if g.hangar['aircraft']=='ATR72':
         filename=['ATR72_SI_MTOW_Control_flap.stab', 'ATR72_SI_MTOW_Control_flapVmax.stab',
                   'ATR72_SI_MTOW_Control_Vmin.stab','ATR72_SI_MTOW_Control_Manoeuver.stab',
                   'ATR72_SI_MTOW_Control_Cruise.stab']
-        path='D:/e.nguyen-van/Documents/DEP_control/StabilityMapATR72/ATR72_SI_MTOW_Control_FinLess_DegenGeom_19_2_15h32/'
+        path='ATR72_SI_MTOW_Control_FinLess_DegenGeom_19_2_15h32/'#'D:/e.nguyen-van/Documents/DEP_control/StabilityMapATR72/ATR72_SI_MTOW_Control_FinLess_DegenGeom_19_2_15h32/'
         filenameNoFin=[path+'_FinLess_Mach0.stab',path+'_FinLess_Mach02.stab',path+'_FinLess_Mach03.stab',
                    path+'_FinLess_Mach04.stab',path+'_FinLess_Mach05.stab']
         MatrixNoFin=ReadCoefAero.ReadCoef(filenameNoFin,col=(11,24,37,50,63,76,128),lign=(47,48,49,50,51,52))
@@ -327,10 +331,44 @@ printx(k.x, fixtest)
 constraints_calc=e.Constraints_DEP(k.x,*diccons)
 print("\nConstraints")
 print(constraints_calc)
-# Option plot the thrust distribution
-plt.figure(7)
-plt.scatter(np.append(np.arange(math.floor(-g.N_eng/2)*g.step_y, 0,g.step_y),np.arange(g.step_y,math.floor(g.N_eng/2+1)*g.step_y, g.step_y)),k.x[-g.N_eng:])
-plt.grid()
+# Option plot the thrust distribution and rudder
+if HistoGouv==True:
+    plt.figure(7)
+    plt.subplot(2,1,1)
+    plt.bar(g.PosiEng,k.x[-g.N_eng:], color="0.45")
+    plt.xlabel("Engine location")
+    plt.ylabel("Throttle (-)")
+    plt.ylim(0,1)
+    plt.xlim(-g.b/2-1,g.b/2+1)
+    plt.xticks(np.linspace(-g.b/2,g.b/2,5),('-b/2','-b/4','0','b/4','b/2'))
+    plt.grid()
+    if g.nofin==False:
+        axrud=plt.subplot(2,1,2)
+        width=0.5
+        axrud.barh(0,k.x[8]/math.pi*180,width,color="0.45")
+        axrud.set_yticks([0])
+        axrud.set_xlim(-deltaRmax,deltaRmax)
+        axrud.set_ylim(-1,1)
+        axrud.set_xlabel("Rudder Deflection (°)")
+        plt.sca(axrud)
+        plt.yticks([0],[r'$\delta_R$'])
+        plt.grid()
+        plt.tight_layout()
+        plt.show()
+    else:
+        #still show zero deflection
+        axrud=plt.subplot(2,1,2)
+        width=0.5
+        axrud.barh(0,0,width,color="0.45")
+        axrud.set_yticks([0])
+        axrud.set_xlim(-deltaRmax,deltaRmax)
+        axrud.set_ylim(-1,1)
+        axrud.set_xlabel("Rudder Deflection (°)")
+        plt.sca(axrud)
+        plt.yticks([0],[r'$\delta_R$'])
+        plt.grid()
+        plt.tight_layout()
+        plt.show()
 
 # ---- Compute jacobian -----
 if gojac==True:
@@ -538,49 +576,55 @@ if domap==True:
     print("--- %s seconds ---" % (time.time()-start_time))
     
     # --- post process the matrix ---
+    MarkerStyle=["s","^","v","<",">","+","x","*"]
+    lenMarker=len(MarkerStyle)
+    LineStyle={'alpha':":",'phi':"-.",'deltaa':"--",'deltaR':"-",'deltax':"--"}
+    Labellist={'alpha':"Stall",'phi':"$\phi$>5°",'deltaa':"Aileron saturation",'deltaR':"Rudder saturation",'deltax':"Engine Saturation"}
+
     Var.Dim2deg()   # transform the variables in degree for plot
-    scatter=np.array([0,0])
-    for i in range(ligns):
-        xscatter=Var.FirstDim[i]
-        for j in range(col):
-            if Map[i,j]==1:
-                scatter=np.vstack((scatter, np.array([xscatter,Var.SecondDim[j]])))
-    # Treat unstable points
+    scatter=np.array([]).reshape(0,2)
+
+    # Treat unstable points if necessary
     scatterIm=np.array([0,0])
     for i in range(ligns):
         xscatter=Var.FirstDim[i]
         for j in range(col):
             if Map[i,j]==2:
                 scatterIm=np.vstack((scatterIm, np.array([xscatter,Var.SecondDim[j]])))
-    """# Treat bounds
-    for i in range(1,ligns-1):
-        for j in range(1,col-1):
-            if Map[i,j]!=1:
-                #this is a failure check whether there is success nearby
-                SuccessClose=False
-                for a in range(-1,1):
-                    for b in range(-1,1):
-                        if Map[i+a,j+b]==1:
-                            #there is one
-                            SuccessClose=True
-                if SuccessClose==True:
-                    #Then pull limiting parameters
-                    for k in range(LenBparam):
-                        if BparamMatrix[i,j,k]==1:
-                            kName=BparamName[k]
-                            #save the variables values
-                            DispBparam[kName]=np.vstack([DispBparam[kName],[Var.FirstDim[i],Var.SecondDim[j]]])
-"""
+   
     # Treat bounds
+    EngSat={}
+    EngSatName=[]
+    for i in range(lenMarker):
+        EngSatName.append(str(i+1)+"Sat")
+        EngSat[EngSatName[i]]=np.array([]).reshape(0,2)
+
     for i in range(ligns):
         for j in range(col):
             if Map[i,j]==1:
                 #Then pull limiting parameters
-                for k in range(LenBparam):
+                for k in range(LenSmallBparam):
+                    # This is for alpha, phi or stall
                     if BparamMatrix[i,j,k]==1:
                         kName=BparamName[k]
                         #save the variables values
                         DispBparam[kName]=np.vstack([DispBparam[kName],[Var.FirstDim[i],Var.SecondDim[j]]])
+
+                #Now check Engine saturation
+                count=0 #initialize number of engine saturated
+                for k in range(LenSmallBparam, LenBparam):
+                    #Now check which engine are saturated and count them
+                    if BparamMatrix[i,j,k]==1:
+                        count+=1
+                
+                # count is the total number of saturated engine. Save points in EngSat dictionary
+                if count==0:
+                    scatter=np.vstack([scatter,[Var.FirstDim[i],Var.SecondDim[j]]])
+                for k in range(len(EngSatName)):
+                    if (k+1)==count:
+                        EngSat[EngSatName[k]]=np.vstack([EngSat[EngSatName[k]],[Var.FirstDim[i],Var.SecondDim[j]]])
+                    
+
     #plot the figure
     plt.figure(6)
     ax=plt.subplot()
@@ -588,22 +632,57 @@ if domap==True:
     yaxes=Var.getYlocator()
     ax.xaxis.set_minor_locator(ticker.FixedLocator(xaxes))
     ax.yaxis.set_minor_locator(ticker.FixedLocator(yaxes))
-    MarkerStyle={'alpha':"o",'phi':"^",'deltaa':"v",'deltaR':"s"}
-    LineStyle={'alpha':":",'phi':"-.",'deltaa':"--",'deltaR':"-",'deltax':"--"}
-    Labellist={'alpha':"Stall",'phi':"$\phi$>5°",'deltaa':"Aileron saturation",'deltaR':"Rudder saturation",'deltax':"Engine Saturation"}
-    
-    if len(scatter)>2:
+
+    #if beta is one variable, plot fading marker
+    if Var.FirstVar=="Beta" or Var.SecondVar=="Beta":
+        MarkerColor=["0.45","0.75"]
+        if Var.FirstVar=="Beta":
+            for l in range(len(scatter[:,0])):
+                if scatter[l,0]>-BetaStall and scatter[l,0]<BetaStall:
+                    ax.scatter(scatter[l,0],scatter[l,1], color="0.45",s=20)
+                else :
+                    ax.scatter(scatter[l,0],scatter[l,1], color="0.75",s=20)
+            for i in range(len(EngSatName)):
+                #Take care of the engine saturation. For each success with at least one engine saturated
+                iName=EngSatName[i]
+                for l in range(len(EngSat[iName][:,0])):
+                    if EngSat[iName][l,0]>-BetaStall and EngSat[iName][l,0]<BetaStall:
+                        ax.scatter(EngSat[iName][l,0],EngSat[iName][l,1],marker=MarkerStyle[i], color="0.45")
+                    else:
+                        ax.scatter(EngSat[iName][l,0],EngSat[iName][l,1],marker=MarkerStyle[i], color="0.75")
+        else:
+            for l in range(len(scatter[:,1])):
+                if scatter[l,1]>-BetaStall and scatter[l,1]<BetaStall:
+                    ax.scatter(scatter[l,0],scatter[l,1], color="0.45",s=20)
+                else :
+                    ax.scatter(scatter[l,0],scatter[l,1], color="0.75",s=20)
+            for i in range(len(EngSatName)):
+                #Take care of the engine saturation. For each success with at least one engine saturated
+                iName=EngSatName[i]
+                for l in range(len(EngSat[iName][:,1])):
+                    if EngSat[iName][l,1]>-BetaStall and EngSat[iName][l,1]<BetaStall:
+                        ax.scatter(EngSat[iName][l,0],EngSat[iName][l,1],marker=MarkerStyle[i], color="0.45")
+                    else:
+                        ax.scatter(EngSat[iName][l,0],EngSat[iName][l,1],marker=MarkerStyle[i], color="0.75")
+    else:
         ax.scatter(scatter[1:,0],scatter[1:,1],color="0.45",s=20)
+        for i in range(len(EngSatName)):
+            #Take care of the engine saturation. 
+            iName=EngSatName[i]
+            ax.scatter(EngSat[iName][:,0],EngSat[iName][:,1],marker=MarkerStyle[i], color="0.45")
+
     if len(scatterIm)>2:
         ax.scatter(scatterIm[1:,0], scatterIm[1:,1],color="r")
     for i in range(LenSmallBparam):
         iName=BparamName[i]
         if len(DispBparam[iName][:,0])>1:
               ax.plot(DispBparam[iName][:,0],DispBparam[iName][:,1],linestyle=LineStyle[iName],color="0",label=Labellist[iName])
-    for i in range(LenSmallBparam,LenBparam):
-        #Take care of the engine saturation. For each success with at least one engine saturated
-        iName=BparamName[i]
-        ax.scatter(DispBparam[iName][:,0],DispBparam[iName][:,1],marker="s",color="0.45")
+    # for i in range(len(EngSatName)):#LenSmallBparam,LenBparam):
+    #     #Take care of the engine saturation. For each success with at least one engine saturated
+    #     #iName=BparamName[i]
+    #     #ax.scatter(DispBparam[iName][:,0],DispBparam[iName][:,1],marker="s",color="0.45")
+    #     iName=EngSatName[i]
+    #     ax.scatter(EngSat[iName][:,0],EngSat[iName][:,1],marker=MarkerStyle[i], color="0.45")
 #    plt.grid(b=True, which='major', color='k', linestyle='-')
     plt.grid(b=True, which='minor', color='0.8', linestyle='-')
     plt.xlabel(Var.getName('x') + " (" +Var.getUnit('x')+")")
@@ -612,7 +691,8 @@ if domap==True:
     axe.set_xlim(Var.FirstDim[0],Var.FirstDim[-1])
     axe.set_ylim(Var.SecondDim[0],Var.SecondDim[-1])
     ax.legend()
-    plt.savefig(g.hangar['version']+"Map"+MapName+"fin"+str(g.VTsize)+"Eng"+str(g.N_eng+g.inop)+"Rud"+str(g.nofin)+".pdf")
+    plt.show()
+    #plt.savefig(g.hangar['version']+"Map"+MapName+"fin"+str(g.VTsize)+"Eng"+str(g.N_eng+g.inop)+"Rud"+str(g.nofin)+".pdf")
 
 
     #plot Jac

@@ -105,7 +105,7 @@ class data:
             sys.exit("Error type of 'nofin' isn't a boolean. Stopping")
             
     def loadAtmo(self):
-        filename='D:/e.nguyen-van/Documents/DEP_control/StabilityMapATR72/si2py.txt'
+        filename='si2py.txt'#'D:/e.nguyen-van/Documents/DEP_control/StabilityMapATR72/si2py.txt'
         sep='\t'
         file=open(filename,'r')
         vecname=file.readline()
@@ -148,11 +148,16 @@ class data:
         self.N_eng=N_eng # number of engines
         self.inop=inop_eng # number of inoperative engines
         
+        if N_eng % 2 !=0:
+            sys.exit("Number of engine is not even")
+        
         if N_eng>2:
             #Adjust engine position
-            self.step_y=self.b/2/self.N_eng
+            self.step_y=self.b/self.N_eng
+            self.PosiEng=np.append(np.arange(-self.b/2,0,self.step_y),np.arange(self.step_y,(self.b/2+self.step_y),self.step_y))
         else:
             self.step_y=8.1/2.0
+            self.PosiEng=np.array([-self.step_y,self.step_y])
                 
         self.Sv=Sv
         self.SvBase=Sv

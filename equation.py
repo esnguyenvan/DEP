@@ -40,7 +40,7 @@ def X(x, CoefMatrix,Velocities,rho,g):
     sub_vect=np.append(sub_vect,x[3:6])
     #(alpha, beta, p, q, r, da, dr, de, dx)
     sub_vect=np.append(sub_vect,[x[-4],x[-2],x[-3],x[-1]])
-#    svec_force=np.append(sub_vect,[x[-2],x[-3],x[-1]])
+
     
     F=AeroForces.CalcForces(V, sub_vect, CoefMatrix, Velocities, rho)
 #    print("Printing forces :")
@@ -124,10 +124,12 @@ def Constraints_DEP(x, fix, CoefMatrix, rho, g):
     Fx=np.sum(x[start:])*2*g.P_var/(float(g.N_eng)*V)*g.prop_eff
     
     M_y=0 # initialization
-    for i in range(n_eng):
-        M_y=M_y+x[start+i]*g.step_y*(n_eng-i)
-    for i in range(n_eng):
-        M_y=M_y-x[-i-1]*g.step_y*(n_eng-i)
+    xeng=np.copy(x[start:])
+    M_y=-np.dot(xeng,g.PosiEng)
+    # for i in range(n_eng):
+    #     M_y=M_y+x[start+i]*g.step_y*(n_eng-i)
+    # for i in range(n_eng):
+    #     M_y=M_y-x[-i-1]*g.step_y*(n_eng-i)
         
     M_y=M_y*2*g.P_var/(float(g.N_eng)*V)*g.prop_eff
 #    print(M_y)
