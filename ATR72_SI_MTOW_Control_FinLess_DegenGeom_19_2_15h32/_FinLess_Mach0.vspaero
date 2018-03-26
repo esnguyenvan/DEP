@@ -1,0 +1,32 @@
+Sref = 60.847776 
+Cref = 2.324481 
+Bref = 27.047952 
+X_cg = 12.410000 
+Y_cg = 0
+Z_cg = 1.315000 
+Mach = 0.0
+AoA = 5.0
+Beta = 0
+Vinf = 65.0
+Rho = 1.225
+ReCref = 11000000.0
+ClMax = -1.000000 
+MaxTurningAngle = -1.000000 
+Symmetry = NO 
+FarDist = -1.000000 
+NumWakeNodes = -1 
+WakeIters = 5 
+NumberOfRotors = 0 
+NumberOfControlGroups = 2 
+Control_flap
+Ms_Wing_0_Surf0_Flap,Ms_Wing_0_Surf1_Flap
+-1, 1
+-20.0
+Control_ailerons
+Ms_Wing_0_Surf0_Ailerons,Ms_Wing_0_Surf1_Ailerons
+1, 1
+0
+Preconditioner = Matrix 
+Vortex Lift = Y 
+LE Suction = N 
+Karman-Tsien Correction = Y 
