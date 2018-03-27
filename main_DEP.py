@@ -40,13 +40,13 @@ g = ATRgeometry.data(1,Neng,inop_eng) # arg = Vtsize + options(Neng, inop_eng, v
 print(g.PosiEng)
 # --- Test case and steady parameters
 H_base = 0000 # in m the altitude
-V_base = 70
+V_base = 60
 beta_base = 0/180*math.pi
-gamma = math.atan(2.4/100)#/180*math.pi # 3% slope gradient
+gamma = math.atan(3/100)#/180*math.pi # 3% slope gradient
 R = 0 # in meters the turn radius
 phimax = 5 # in degree the max bank angle authorized
 alphamax=10 # in degree to adjust if it is below 71m/s
-deltaRmax=25 # in degree
+deltaRmax=30 # in degree
 ThrottleMax = 1 # max thrust level
 ThrottleMin = 1e-9 # min thruttle, don't accept 0 thrust
 # ---- Optim parameter ------
@@ -62,7 +62,7 @@ g.hangar={'aircraft':'ATR72', 'version':'original'}
 # --- plot coeff evolution
 plotcoef = False
 # --- plot control histogram
-HistoGouv = False
+HistoGouv = True
 
 # --- Study jacobian
 gojac = False
@@ -73,16 +73,16 @@ CstSpan = False
 CstA = True
 
 # --- mapping settings ---
-domap = True
+domap = False
 MapName = "Beta_Vel"      # key words "Vel", "Beta", "Gamma", "Omega", separator: "_"
 
-MapVmax = 70              #velocity limits in degrees
+MapVmax = 71              #velocity limits in degrees
 MapVmin = 48
 MapVstep = 1
 
 MapBetaMax = 21
 MapBetaMin = -20
-MapBetaStep = 2
+MapBetaStep = 1
 
 MapGammaMax = 5     #gamma limits in degrees
 MapGammaMin = 0
@@ -102,7 +102,7 @@ if g.nofin==True:
     for i in range(Neng):
         BparamName.append("deltax"+str(i)) #complete the name
     BparamLim={'alpha':alphamax/180*math.pi,'phi':phimax/180*math.pi,'deltaa':20/180*math.pi,'deltaxmax':ThrottleMax,'deltaxmin':ThrottleMin}
-    BparamThres={'alpha':0.92,'phi':0.99,'deltaa':0.95,'deltaxmax':0.96,'deltaxmin':0.01}
+    BparamThres={'alpha':0.92,'phi':0.99,'deltaa':0.95,'deltaxmax':0.97,'deltaxmin':0.01}
     LenBparam=len(BparamName)
     DispBparam={}
     for i in range(LenBparam):
@@ -116,7 +116,7 @@ else:
     for i in range(Neng):
         BparamName.append("deltax"+str(i)) #complete the name
     BparamLim={'alpha':alphamax/180*math.pi,'phi':phimax/180*math.pi,'deltaa':20/180*math.pi,'deltaR':deltaRmax/180*math.pi,'deltaxmax':ThrottleMax,'deltaxmin':ThrottleMin}
-    BparamThres={'alpha':0.92,'phi':0.99,'deltaa':0.95,'deltaR':0.97,'deltaxmax':0.96,'deltaxmin':0.01}
+    BparamThres={'alpha':0.92,'phi':0.99,'deltaa':0.95,'deltaR':0.97,'deltaxmax':0.98,'deltaxmin':0.01}
     LenBparam=len(BparamName)
     DispBparam={}
     for i in range(LenBparam):
@@ -354,7 +354,7 @@ if HistoGouv==True:
         plt.yticks([0],[r'$\delta_R$'])
         plt.grid()
         plt.tight_layout()
-        plt.show()
+        # plt.show()
     else:
         #still show zero deflection
         axrud=plt.subplot(2,1,2)
@@ -368,7 +368,8 @@ if HistoGouv==True:
         plt.yticks([0],[r'$\delta_R$'])
         plt.grid()
         plt.tight_layout()
-        plt.show()
+        # plt.show()
+    plt.savefig("Defl"+g.hangar['version']+"fin"+str(g.VTsize)+"Eng"+str(g.N_eng+g.inop)+"Rud"+str(g.nofin)+".pdf")
 
 # ---- Compute jacobian -----
 if gojac==True:
@@ -568,7 +569,7 @@ if domap==True:
     MarkerStyle=["s","^","v","<",">","+","x","*"]
     lenMarker=len(MarkerStyle)
     LineStyle={'alpha':":",'phi':"-.",'deltaa':"--",'deltaR':"-",'deltax':"--"}
-    Labellist={'alpha':"Stall",'phi':"$\phi$>5°",'deltaa':"Aileron saturation",'deltaR':"Rudder saturation",'deltax':"Engine Saturation"}
+    Labellist={'alpha':"Stall",'phi':"$\phi$>5°",'deltaa':"Aileron saturation",'deltaR':"$\delta_R$>30°",'deltax':"Engine Saturation"}
 
     Var.Dim2deg()   # transform the variables in degree for plot
     scatter=np.array([]).reshape(0,2)
@@ -588,8 +589,8 @@ if domap==True:
         EngSatName.append(str(i+1)+"Sat")
         EngSat[EngSatName[i]]=np.array([]).reshape(0,2)
 
-    for i in range(ligns):
-        for j in range(col):
+    for i in range(ligns):#for j in range(col):
+        for j in range(col):#for i in range(ligns):
             if Map[i,j]==1:
                 #Then pull limiting parameters
                 for k in range(LenSmallBparam):
@@ -680,7 +681,7 @@ if domap==True:
     axe.set_xlim(Var.FirstDim[0],Var.FirstDim[-1])
     axe.set_ylim(Var.SecondDim[0],Var.SecondDim[-1])
     ax.legend()
-    plt.show()
+    # plt.show()
     plt.savefig(g.hangar['version']+"Map"+MapName+"fin"+str(g.VTsize)+"Eng"+str(g.N_eng+g.inop)+"Rud"+str(g.nofin)+".pdf")
 
 
