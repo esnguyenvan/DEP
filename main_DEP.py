@@ -34,19 +34,19 @@ plt.rc('font', **font)
 # --- 
 
 """ Algorithm set up """
-Neng =12
-inop_eng = 3
-g = ATRgeometry.data(0.7,Neng,inop_eng) # arg = Vtsize + options(Neng, inop_eng, vertical tail parameters)
+Neng =2
+inop_eng = 1
+g = ATRgeometry.data(1,Neng,inop_eng) # arg = Vtsize + options(Neng, inop_eng, vertical tail parameters)
 print(g.PosiEng)
 # --- Test case and steady parameters
 H_base = 0000 # in m the altitude
-V_base = 60
-beta_base = 5/180*math.pi
-gamma = 2.0/180*math.pi 
+V_base = 70
+beta_base = 0/180*math.pi
+gamma = math.atan(2.4/100)#/180*math.pi # 3% slope gradient
 R = 0 # in meters the turn radius
 phimax = 5 # in degree the max bank angle authorized
 alphamax=10 # in degree to adjust if it is below 71m/s
-deltaRmax=0.75*30 # in degree
+deltaRmax=25 # in degree
 ThrottleMax = 1 # max thrust level
 ThrottleMin = 1e-9 # min thruttle, don't accept 0 thrust
 # ---- Optim parameter ------
@@ -54,10 +54,10 @@ MaxIter=100 # only for single run
 tolerance=1e-5
 
 # --- additional parameters (default edited during execution) ---
-g.set_nofin(True) # =True means : no rudder used
+g.set_nofin(False) # =True means : no rudder used
 
 # --- dictionnary for type of aircraft studied. aircraft: ATR72, version : 'original', 'DEPoriginal', 'DEPnofin'
-g.hangar={'aircraft':'ATR72', 'version':'DEPoriginal'}
+g.hangar={'aircraft':'ATR72', 'version':'original'}
 
 # --- plot coeff evolution
 plotcoef = False
@@ -76,13 +76,13 @@ CstA = True
 domap = True
 MapName = "Beta_Vel"      # key words "Vel", "Beta", "Gamma", "Omega", separator: "_"
 
-MapVmax = 65              #velocity limits in degrees
+MapVmax = 70              #velocity limits in degrees
 MapVmin = 48
 MapVstep = 1
 
 MapBetaMax = 21
 MapBetaMin = -20
-MapBetaStep = 1
+MapBetaStep = 2
 
 MapGammaMax = 5     #gamma limits in degrees
 MapGammaMin = 0
@@ -102,7 +102,7 @@ if g.nofin==True:
     for i in range(Neng):
         BparamName.append("deltax"+str(i)) #complete the name
     BparamLim={'alpha':alphamax/180*math.pi,'phi':phimax/180*math.pi,'deltaa':20/180*math.pi,'deltaxmax':ThrottleMax,'deltaxmin':ThrottleMin}
-    BparamThres={'alpha':0.92,'phi':0.99,'deltaa':0.95,'deltaxmax':0.98,'deltaxmin':0.01}
+    BparamThres={'alpha':0.92,'phi':0.99,'deltaa':0.95,'deltaxmax':0.96,'deltaxmin':0.01}
     LenBparam=len(BparamName)
     DispBparam={}
     for i in range(LenBparam):
@@ -116,7 +116,7 @@ else:
     for i in range(Neng):
         BparamName.append("deltax"+str(i)) #complete the name
     BparamLim={'alpha':alphamax/180*math.pi,'phi':phimax/180*math.pi,'deltaa':20/180*math.pi,'deltaR':deltaRmax/180*math.pi,'deltaxmax':ThrottleMax,'deltaxmin':ThrottleMin}
-    BparamThres={'alpha':0.92,'phi':0.99,'deltaa':0.95,'deltaR':0.97,'deltaxmax':0.99,'deltaxmin':0.01}
+    BparamThres={'alpha':0.92,'phi':0.99,'deltaa':0.95,'deltaR':0.97,'deltaxmax':0.96,'deltaxmin':0.01}
     LenBparam=len(BparamName)
     DispBparam={}
     for i in range(LenBparam):
@@ -560,18 +560,7 @@ if domap==True:
 
             else:
                 Map[i,j]=0
-                """#it is a failure, for each limiting parameter check which one is beyond limit
-                for l in range(LenSmallBparam):
-                    #this is for alpha, phi, da and dR limits
-                    iName=BparamName[l]
-                    if abs(k.x[BparamXvecPosi[iName]])>BparamLim[iName]*BparamThres[iName]:
-                        BparamMatrix[i,j,l]=1
-                for l in range(LenSmallBparam,LenBparam):
-                    #this is only for engine limits
-                    iName=BparamName[l]
-                    if k.x[BparamXvecPosi[iName]]>BparamLim['deltaxmax']*BparamThres['deltaxmax'] :#or k.x[BparamXvecPosi[iName]]<BparamLim['delatxmin']*BparamThres['delatxmin']:
-                        BparamMatrix[i,j,l]=1
-                """
+
         
     print("--- %s seconds ---" % (time.time()-start_time))
     
@@ -692,7 +681,7 @@ if domap==True:
     axe.set_ylim(Var.SecondDim[0],Var.SecondDim[-1])
     ax.legend()
     plt.show()
-    #plt.savefig(g.hangar['version']+"Map"+MapName+"fin"+str(g.VTsize)+"Eng"+str(g.N_eng+g.inop)+"Rud"+str(g.nofin)+".pdf")
+    plt.savefig(g.hangar['version']+"Map"+MapName+"fin"+str(g.VTsize)+"Eng"+str(g.N_eng+g.inop)+"Rud"+str(g.nofin)+".pdf")
 
 
     #plot Jac
