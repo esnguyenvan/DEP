@@ -34,13 +34,13 @@ plt.rc('font', **font)
 # --- 
 
 """ Algorithm set up """
-Neng =2
-inop_eng = 1
-g = ATRgeometry.data(1,Neng,inop_eng) # arg = Vtsize + options(Neng, inop_eng, vertical tail parameters)
+Neng =12
+inop_eng = 3
+g = ATRgeometry.data(0.7,Neng,inop_eng) # arg = Vtsize + options(Neng, inop_eng, vertical tail parameters)
 print(g.PosiEng)
 # --- Test case and steady parameters
 H_base = 0000 # in m the altitude
-V_base = 60
+V_base = 65
 beta_base = 0/180*math.pi
 gamma = math.atan(3/100)#/180*math.pi # 3% slope gradient
 R = 0 # in meters the turn radius
@@ -51,18 +51,18 @@ ThrottleMax = 1 # max thrust level
 ThrottleMin = 1e-9 # min thruttle, don't accept 0 thrust
 # ---- Optim parameter ------
 MaxIter=100 # only for single run
-tolerance=1e-5
+tolerance=1e-3
 
 # --- additional parameters (default edited during execution) ---
 g.set_nofin(False) # =True means : no rudder used
 
 # --- dictionnary for type of aircraft studied. aircraft: ATR72, version : 'original', 'DEPoriginal', 'DEPnofin'
-g.hangar={'aircraft':'ATR72', 'version':'original'}
+g.hangar={'aircraft':'ATR72', 'version':'DEPoriginal'}
 
 # --- plot coeff evolution
 plotcoef = False
 # --- plot control histogram
-HistoGouv = True
+HistoGouv = False
 
 # --- Study jacobian
 gojac = False
@@ -73,16 +73,16 @@ CstSpan = False
 CstA = True
 
 # --- mapping settings ---
-domap = False
+domap = True
 MapName = "Beta_Vel"      # key words "Vel", "Beta", "Gamma", "Omega", separator: "_"
 
-MapVmax = 71              #velocity limits in degrees
-MapVmin = 48
-MapVstep = 1
+MapVmax = 90              #velocity limits in degrees
+MapVmin = 70
+MapVstep = 2
 
 MapBetaMax = 21
 MapBetaMin = -20
-MapBetaStep = 1
+MapBetaStep = 2
 
 MapGammaMax = 5     #gamma limits in degrees
 MapGammaMin = 0
@@ -116,7 +116,7 @@ else:
     for i in range(Neng):
         BparamName.append("deltax"+str(i)) #complete the name
     BparamLim={'alpha':alphamax/180*math.pi,'phi':phimax/180*math.pi,'deltaa':20/180*math.pi,'deltaR':deltaRmax/180*math.pi,'deltaxmax':ThrottleMax,'deltaxmin':ThrottleMin}
-    BparamThres={'alpha':0.92,'phi':0.99,'deltaa':0.95,'deltaR':0.97,'deltaxmax':0.98,'deltaxmin':0.01}
+    BparamThres={'alpha':0.92,'phi':1.0,'deltaa':0.95,'deltaR':0.97,'deltaxmax':0.97,'deltaxmin':0.01}
     LenBparam=len(BparamName)
     DispBparam={}
     for i in range(LenBparam):
@@ -354,7 +354,7 @@ if HistoGouv==True:
         plt.yticks([0],[r'$\delta_R$'])
         plt.grid()
         plt.tight_layout()
-        # plt.show()
+        #plt.show()
     else:
         #still show zero deflection
         axrud=plt.subplot(2,1,2)
@@ -529,9 +529,10 @@ if domap==True:
             dicfobj=(np.copy(fix),rho_base,g)
             
             # minimization algorithm
-            k=minimize(e.fobjective, x0, args=dicfobj, bounds=bnds, constraints={'type' : 'eq', 'fun' : e.Constraints_DEP, 'args' : diccons},options={'maxiter':30}, tol= 1e-3 )
+            k=minimize(e.fobjective, x0, args=dicfobj, bounds=bnds, constraints={'type' : 'eq', 'fun' : e.Constraints_DEP, 'args' : diccons},options={'maxiter':MaxIter}, tol= tolerance )
             
             if k.success == True:
+                x0=k.x # re-initialize the starting point near the previous position
                 #Check constraints again adjust threshold
                 check=e.Constraints_DEP(k.x,*diccons)
                 err=math.sqrt(np.dot(check,check))
