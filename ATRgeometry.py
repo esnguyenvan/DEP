@@ -278,6 +278,10 @@ class data:
         return np.array([self.Kh])
     
     def GetAtmo(self,h=0):
+        """
+        Using the atmosphere model loaded before, it outputs [a_sound, rho] at
+        the desired h=altitude. It doesn't perform interpolation.
+        """
         Condition=h/500 is int 
         if Condition:
             Indice=h//500+1

@@ -37,7 +37,7 @@ plt.rc('font', **font)
 Neng =12
 inop_eng = 3
 g = ATRgeometry.data(0.7,Neng,inop_eng) # arg = Vtsize + options(Neng, inop_eng, vertical tail parameters)
-print(g.PosiEng)
+#print(g.PosiEng)
 # --- Test case and steady parameters
 H_base = 0000 # in m the altitude
 V_base = 65
@@ -54,7 +54,7 @@ MaxIter=100 # only for single run
 tolerance=1e-3
 
 # --- additional parameters (default edited during execution) ---
-g.set_nofin(False) # =True means : no rudder used
+g.set_nofin(True) # =True means : no rudder used
 
 # --- dictionnary for type of aircraft studied. aircraft: ATR72, version : 'original', 'DEPoriginal', 'DEPnofin'
 g.hangar={'aircraft':'ATR72', 'version':'DEPoriginal'}
@@ -62,7 +62,7 @@ g.hangar={'aircraft':'ATR72', 'version':'DEPoriginal'}
 # --- plot coeff evolution
 plotcoef = False
 # --- plot control histogram
-HistoGouv = False
+HistoGouv = True
 
 # --- Study jacobian
 gojac = False
@@ -73,7 +73,7 @@ CstSpan = False
 CstA = True
 
 # --- mapping settings ---
-domap = True
+domap = False
 MapName = "Beta_Vel"      # key words "Vel", "Beta", "Gamma", "Omega", separator: "_"
 
 MapVmax = 90              #velocity limits in degrees
