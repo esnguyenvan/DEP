@@ -7,7 +7,7 @@ Created on Thu Apr 12 10:56:05 2018
 
 import numpy as np
 
-def BetaSurro(a, deltax, V, rho):
+def BetaSurro(a, Vjet, V, rho):
     """
     This function computes the beta, corrective term of Patterson propeller
     lift model.
@@ -19,14 +19,15 @@ def BetaSurro(a, deltax, V, rho):
         V : flight velocity
         rho : actual air density
     Outputs :
-        beta
+        beta : vector of beta value in the order of the deltax given
     """
     
     # first computes thrust
-    Thrust = deltax * 2*a.P_a / (a.N_eng * V)*a.prop_eff
+#    Thrust = deltax * 2*a.P_a / (a.N_eng * V)*a.prop_eff
     
     # use mu factor defined by jameson as V/Vj
-    invMu = ( 1 + (Thrust)/(0.5*rho*V**2*a.Sp) )**0.5
+#    invMu = ( 1 + (Thrust)/(0.5*rho*V**2*a.Sp) )**0.5
+    invMu = Vjet/V
     
     # definition of surrogate coefficients
     C0 = np.array([0.378269, 0.748135, -0.179986, -0.056464, -0.146746, -0.015255])
@@ -37,10 +38,12 @@ def BetaSurro(a, deltax, V, rho):
     
     #Definition of surrogate vector
     Lratio = a.xp/a.c
-    Rratio = a.Dp/2*a.c
+    Rratio = a.Dp/(2*a.c)
+    print(Lratio)
+    print(Rratio)
     
-    beta=np.zeros(len(Thrust))
-    for i in range(len(Thrust)):
+    beta=np.zeros(len(Vjet))
+    for i in range(len(Vjet)):
         X = np.array([1, Lratio, Lratio**2, Lratio*invMu[i], invMu[i], invMu[i]**2])
         
         # Compute the whole thing

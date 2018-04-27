@@ -20,16 +20,16 @@ class data:
     
     #shared data between class go here:
     # --- Geometry --- 
-    S=61 #m^2
-    b=27.05 #m
-    c=2.32 #m
-    lv=13 #m approximate, to verify
+    S=15 #m^2
+    b=15 #m
+    c=1 #m
+    lv=0 #m approximate, to verify
     zf=2 #3.16 #m, z position of the MAC of the fin, in reality a suitable height
-    FusWidth=2.865 #m the fuselage width from Jane's aircraft
+    FusWidth=0.12*b #m the fuselage width from Jane's aircraft
     fswept = 35/180*math.pi
     ftaper=0.55
     fAR=1.57
-    bflap = 12.28 # m the total flap length
+    bflap = 0 # m the total flap length
     
     # --- Mass ---
     x_cg=12.4 # (m)
@@ -45,7 +45,7 @@ class data:
     P_var=P_a
     hp=0 # rotor term
     prop_eff=0.7
-    ip = 0 # propeller incidentce angle with respect to airfoil zero lift line
+    ip = -(5.5+1.8)/180*np.pi # propeller incidentce angle with respect to airfoil zero lift line
     
     
     # ---Unique coeff ---
@@ -66,10 +66,10 @@ class data:
     Cm0=0.06154
     
     # Averaged lift slope of airfoil
-    a_av=(2*np.pi*0.8)# in rad lift slope corresponding to Mach<0.2
+    a_av=(2*np.pi*0.9)# in rad lift slope corresponding to Mach<0.2
     
     #airfoil zero lift angle
-    alpha_0=-CL0/a_av
+    alpha_0=-1.8/180*np.pi
     
     #Flap efficiency
     FlEff=(CL0_fl-CL0)/a_av
@@ -152,7 +152,7 @@ class data:
         return VariableDic
 
     
-    def __init__(self, VTsize, N_eng=2, inop_eng=0, bv=4.42, r=0.6, zw=1.8, rf=1.3, zh=3.71, bvl=5.91, Sh=11.13, Sv=12.5, dtip=0.5, dfus=0.5, dprop=0.1):
+    def __init__(self, VTsize, N_eng=2, inop_eng=0, bv=4.42, r=0.6, zw=1.8, rf=1.3, zh=3.71, bvl=5.91, Sh=11.13, Sv=12.5, dtip=0, dfus=0, dprop=0.1):
         self.VTsize=VTsize
         self.N_eng=N_eng # number of engines
         self.inop=inop_eng # number of inoperative engines
